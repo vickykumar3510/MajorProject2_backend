@@ -399,7 +399,4 @@ app.use((req, res) => {
     res.status(404).json({ error: 'Not found' });
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on PORT ${PORT}`);
-});
+module.exports = app;
