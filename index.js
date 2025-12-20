@@ -11,6 +11,10 @@ app.use(cors())
 app.use(express.json());
 initializeDatabase();
 
+//delete after use//
+app.get('/', (req, res) => {
+  res.json({ ok: true, message: 'Root from Express' });
+});
 
 //1. Add Sales agent - IT IS WORKING
 
