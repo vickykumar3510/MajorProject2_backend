@@ -393,15 +393,15 @@ app.delete('/comments', async (req, res) => {
     }
 });
 
-
 app.use((req, res) => {
-    res.status(404).json({ error: 'Not found' });
+  res.status(404).json({ error: 'Not found' });
 });
 
-
+// Local dev: only listen when running directly (NOT on Vercel)
 if (require.main === module) {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
+// Vercel: export app as handler
 module.exports = app;
