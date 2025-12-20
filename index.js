@@ -78,6 +78,7 @@ app.post('/leads', async (req, res) => {
 
 
 //3. Read all leads - IT IS WORKING
+
 app.get("/leads", async (req, res) => {
     try {
         const leads = await Lead.find()
@@ -393,10 +394,9 @@ app.delete('/comments', async (req, res) => {
 });
 
 
-
-
 app.use((req, res) => {
     res.status(404).json({ error: 'Not found' });
 });
+
 
 module.exports = app;
