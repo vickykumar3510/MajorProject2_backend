@@ -337,23 +337,23 @@ app.get("/report/last-week", async (req, res) => {
 
 //10. total leads in pipeline - it is working
 app.get("/report/pipeline", async (req, res) => {
-    try {
-        
-        const total = await Lead.countDocuments({
-            status: { $ne: "Closed" }
-        });
+  try {
+    const pipeline = await Lead.countDocuments({ status: { $ne: "Closed" } });
+    const closed = await Lead.countDocuments({ status: "Closed" });
 
-        res.status(200).json({
-            totalLeadsInPipeline: total
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            error: "Failed to fetch pipeline report.",
-            details: error.message
-        });
-    }
+    res.status(200).json({
+      totalLeadsInPipeline: pipeline,
+      totalLeadsClosed: closed,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to fetch pipeline report.",
+      details: error.message,
+    });
+  }
 });
+
+
 
 //11. Delete agent - it is working
 
@@ -395,6 +395,73 @@ app.delete('/comments', async (req, res) => {
             details: error.message
         });
     }
+});
+
+// 13. leads closed by sales agent
+app.get("/report/agent-closures", async (req, res) => {
+  try {
+    const result = await Lead.aggregate([
+      { $match: { status: "Closed" } },
+      {
+        $group: {
+          _id: "$salesAgent",        // group by salesAgent field
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      {
+        $lookup: {
+          from: "salesagents",      
+          localField: "_id",
+          foreignField: "_id",
+          as: "agent",
+        },
+      },
+      { $unwind: "$agent" },
+      {
+        $project: {
+          _id: 0,
+          name: "$agent.name",
+          count: 1,
+        },
+      },
+    ]);
+
+    const labels = result.map((r) => r.name);
+    const counts = result.map((r) => r.count);
+
+    res.json({ labels, counts });
+  } catch (err) {
+    res.status(500).json({
+      error: "Failed to fetch agent closures",
+      details: err.message,
+    });
+  }
+});
+
+// 14. Lead status distribution
+app.get("/report/status-distribution", async (req, res) => {
+  try {
+    const result = await Lead.aggregate([
+      {
+        $group: {
+          _id: "$status",     // group by status field
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const labels = result.map((r) => r._id);    // e.g. ["New","In Progress","Closed"]
+    const counts = result.map((r) => r.count);  // e.g. [5,3,2]
+
+    res.json({ labels, counts });
+  } catch (err) {
+    res.status(500).json({
+      error: "Failed to fetch status distribution",
+      details: err.message,
+    });
+  }
 });
 
 app.use((req, res) => {
